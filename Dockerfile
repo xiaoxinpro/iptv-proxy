@@ -5,7 +5,6 @@ ENV CGO_ENABLED 0
 WORKDIR /app
 
 ADD go.mod .
-ADD go.sum .
 RUN go mod download
 COPY . .
 RUN go build -ldflags "-w -s" -trimpath -o iptv-proxy ./src
