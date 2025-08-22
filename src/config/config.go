@@ -27,9 +27,9 @@ func Parse() *Config {
   
   c.Source = getStr(&c.Source, "IPTV_SOURCE", "input.m3u")
   c.Target = getStr(&c.Target, "IPTV_TARGET", "iptv.m3u")
-  c.Port = getInt(&c.Port, "WEB_PORT", 8080)
+  c.Port = getInt(&c.Port, "WEB_PORT", 3006)
   c.Host = getStr(&c.Host, "WEB_HOST", "")
-  c.UA = getStr(&c.UA, "IPTV_UA", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+  c.UA = getStr(&c.UA, "IPTV_UA", "")
   c.Refresh = getInt(&c.Refresh, "IPTV_REFRESH", 3600)
   return &c
 }

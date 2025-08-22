@@ -51,7 +51,9 @@ func (p *Proxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
       // 完全替换请求的URL为targetURL，忽略原始请求路径
       req.URL = targetURL
       req.Host = targetURL.Host
-      req.Header.Set("User-Agent", p.ua)
+      if p.ua != "" {
+        req.Header.Set("User-Agent", p.ua)
+      }
       log.Printf("[proxy] forwarding to: %s", req.URL.String())
     },
   }
