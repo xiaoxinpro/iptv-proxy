@@ -20,7 +20,6 @@ type Loader struct {
   source   string
   refresh  int
   lastLoad time.Time
-  lastAccess time.Time
 }
 
 func New(source string, refresh int) *Loader {
@@ -32,8 +31,19 @@ func New(source string, refresh int) *Loader {
 }
 
 func (l *Loader) Start(ctx context.Context) {
-  l.load() // 初始加载
-  <-ctx.Done()
+  l.load()
+  t := time.NewTicker(time.Duration(l.refresh) * time.Second)
+  defer t.Stop()
+  for {
+    select {
+    case <-t.C:
+      if err := l.load(); err != nil {
+        log.Printf("[loader] reload err: %v", err)
+      }
+    case <-ctx.Done():
+      return
+    }
+  }
 }
 
 func (l *Loader) load() error {
@@ -70,32 +80,9 @@ func (l *Loader) load() error {
 
 func (l *Loader) Get(token string) (string, bool) {
   l.mu.RLock()
-  // 检查是否需要刷新
-  if l.shouldRefresh() {
-    // 需要释放读锁，获取写锁进行刷新
-    l.mu.RUnlock()
-    l.mu.Lock()
-    // 双重检查，防止并发情况下重复刷新
-    if l.shouldRefresh() {
-      if err := l.load(); err != nil {
-        log.Printf("[loader] refresh on access failed: %v", err)
-      }
-    }
-    l.mu.Unlock()
-    l.mu.RLock()
-  }
-  
   defer l.mu.RUnlock()
   t, ok := l.urlMap[token]
-  l.lastAccess = time.Now() // 更新访问时间
   return t, ok
-}
-
-func (l *Loader) shouldRefresh() bool {
-  if l.refresh <= 0 {
-    return false
-  }
-  return time.Since(l.lastLoad) > time.Duration(l.refresh)*time.Second
 }
 
 // ------------- 导出方法 -------------
